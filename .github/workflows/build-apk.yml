@@ -1,5 +1,4 @@
 
-
 name: Build Uber Rit Check APK
 
 "on":
@@ -16,27 +15,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Java instellen
+      - name: Java installeren
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Gradle instellen
+      - name: Gradle installeren
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Project uitpakken
+      - name: Bouwpakket uitpakken
         run: |
+          unzip -q UberRitCheck-Android-CloudBuild.zip -d package
+          PROJECT_ZIP=$(find package -name 'UberRitCheckAndroid-project.zip' | head -1)
+          test -n "$PROJECT_ZIP"
           mkdir extracted
-          unzip -q UberRitCheckAndroid-project.zip -d extracted
-          find extracted -maxdepth 3 -type f | head -50
-          find extracted -name settings.gradle -o -name settings.gradle.kts
+          unzip -q "$PROJECT_ZIP" -d extracted
 
       - name: APK bouwen
         run: |
-          PROJECT_DIR=$(dirname "$(find extracted -name settings.gradle -o -name settings.gradle.kts | head -1)")
+          PROJECT_DIR=$(dirname "$(find extracted -name settings.gradle | head -1)")
+          test -n "$PROJECT_DIR"
           cd "$PROJECT_DIR"
           gradle assembleDebug
 
@@ -45,3 +46,4 @@ jobs:
         with:
           name: UberRitCheck-APK
           path: extracted/**/app/build/outputs/apk/debug/app-debug.apk
+          
